@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "EZkanji",
-    "version": "0.1",
+    "version": "0.1.0",
     "description": "Auto add Furigana to Japanese websites",
     "permissions": [],
     "icons": {
@@ -10,17 +10,20 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"], 
-            "js": ["content.js"],
+            "js": ["build/kuromoji.js", "content.js"],
             "run_at": "document_idle"
         }
     ],
     "web_accessible_resources": [
         {
             "resources": [
-                "lib/kuromoji.js",
-                "lib/init-kuromoji.js"
+                "build/*.js",
+                "dict/*.dat.gz"
             ],
             "matches": ["<all_urls>"]
         }
-    ]
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    }
 }

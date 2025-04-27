@@ -9057,10 +9057,3 @@ module.exports = ViterbiSearcher;
 
 },{}]},{},[18])(18)
 });
-
-if (typeof window.kuromoji === 'undefined') {
-    console.error('EZkanji: kuromoji is not defined in page context');
-    return;
-} else {
-    console.log('EZkanji: kuromoji is defined and ready');
-}
