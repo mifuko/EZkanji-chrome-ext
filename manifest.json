@@ -3,9 +3,22 @@
     "name": "EZkanji",
     "version": "1.0",
     "description": "Auto add Furigana to Japanese websites",
-    "permissions": [],
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
     "icons": {
         "48": "icons/icon48.png"
+    },
+    "action": {
+        "default_icon": {
+            "16": "icons/icon16han.png",
+            "32": "icons/icon32han.png"
+        },
+        "default_title": "EZkanji - Click to toggle"
+    },
+    "background": {
+        "service_worker": "background.js"
     },
     "content_scripts": [
         {

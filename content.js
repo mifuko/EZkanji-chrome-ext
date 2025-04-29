@@ -270,38 +270,64 @@ function processPageContent() {
 // 初始化 kuromoji
 function initializeKuromoji() {
     try {
-        console.log('Initializing Kuromoji...');
+        console.log('Starting Kuromoji initialization...');
         
-        if (typeof window.kuromoji === 'undefined' || typeof window.kuromoji.builder !== 'function') {
-            console.error('Kuromoji is not properly initialized');
+        if (typeof window.kuromoji === 'undefined') {
+            console.error('Kuromoji is not loaded');
             return;
         }
 
-        const builder = window.kuromoji.builder({ 
-            dicPath: chrome.runtime.getURL('dict/'),
-            debug: false
-        });
-
-        builder.build((err, tokenInstance) => {
-            if (err) {
-                console.error('Error initializing Kuromoji:', err);
-                return;
-            }
-            console.log('Kuromoji initialized successfully');
-            tokenizer = tokenInstance;
-            
-            // 开始处理页面内容
-            processPageContent();
-        });
+        const dictPath = chrome.runtime.getURL('dict/');
+        console.log('Dictionary path:', dictPath);
+        
+        kuromoji.builder({ dicPath: dictPath })
+            .build((err, tokenizerInstance) => {
+                if (err) {
+                    console.error('Failed to initialize Kuromoji:', err);
+                    return;
+                }
+                
+                console.log('Kuromoji initialized successfully');
+                tokenizer = tokenizerInstance;
+                processPageContent();
+            });
     } catch (error) {
-        console.error('Exception during Kuromoji initialization:', error);
+        console.error('Error in initializeKuromoji:', error);
     }
 }
 
-// 检查 kuromoji 是否已加载
-if (typeof window.kuromoji === 'undefined') {
-    console.error('Kuromoji is not loaded');
-} else {
-    console.log('Kuromoji is available:', window.kuromoji);
-    initializeKuromoji();
-}
+// 监听扩展状态变化
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('Received message:', message);
+    
+    if (message.action === 'updateExtensionState') {
+        console.log('Extension state changed to:', message.enabled);
+        
+        if (message.enabled) {
+            console.log('Initializing Kuromoji...');
+            if (!tokenizer) {
+                initializeKuromoji();
+            } else {
+                console.log('Tokenizer already initialized, processing content...');
+                processPageContent();
+            }
+        } else {
+            console.log('Removing all furigana...');
+            // 移除所有注音
+            document.querySelectorAll('.ezkanji-ruby').forEach(ruby => {
+                const text = ruby.querySelector('rb').textContent;
+                ruby.replaceWith(text);
+            });
+        }
+    }
+});
+
+// 检查初始状态
+chrome.storage.sync.get(['extensionEnabled'], function(result) {
+    console.log('Initial extension state:', result.extensionEnabled);
+    // 只在扩展开启时初始化
+    if (result.extensionEnabled) {
+        console.log('Initializing on page load...');
+        initializeKuromoji();
+    }
+});
